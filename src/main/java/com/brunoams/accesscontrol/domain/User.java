@@ -1,22 +1,26 @@
 package com.brunoams.accesscontrol.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
-import java.io.Serializable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.Collection;
+import java.util.List;
+
 @Entity
 @Table(name= "users")
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
-public class User implements Serializable {
+@EqualsAndHashCode(of = "id")
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
@@ -43,23 +47,21 @@ public class User implements Serializable {
     @LastModifiedBy
     private String updatedBy;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(id, user.id);
-    }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return switch (this.role) {
+            case ADMIN -> List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    new SimpleGrantedAuthority("ROLE_USER"),
+                    new SimpleGrantedAuthority("ROLE_MODERATOR")
+            );
+            case RH -> List.of(
+                    new SimpleGrantedAuthority("ROLE_USER"),
+                    new SimpleGrantedAuthority("ROLE_MODERATOR")
+            );
+            default -> List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        };
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                '}';
-    }
 }
