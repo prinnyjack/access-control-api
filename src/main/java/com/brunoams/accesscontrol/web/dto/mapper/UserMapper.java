@@ -23,6 +23,11 @@ public class UserMapper {
         return new ModelMapper().map(user, UserResponseDto.class);
     }
 
+    public static RegisterRequestDto toUserRequestDto (User user) {
+        return new ModelMapper().map(user, RegisterRequestDto.class);
+    }
+
+
     public static List<UserResponseDto> findAllDTO (List<User> users) {
         return users.stream().map(user -> toUserDto(user)).collect(Collectors.toList());
     }

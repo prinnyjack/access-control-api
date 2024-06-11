@@ -1,6 +1,7 @@
 package com.brunoams.accesscontrol.web.exception;
 
 import com.brunoams.accesscontrol.exception.EntityNotFoundException;
+import com.brunoams.accesscontrol.exception.InvalidAuthorityException;
 import com.brunoams.accesscontrol.exception.PasswordInvalidException;
 import com.brunoams.accesscontrol.exception.UsernameUniqueViolationException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +36,16 @@ public class ApiExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorMessage(request, HttpStatus.CONFLICT, exception.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidAuthorityException.class)
+    public ResponseEntity<ErrorMessage> invalidAuthorityException (RuntimeException exception,
+                                                                         HttpServletRequest request) {
+        log.error("Api error - ", exception);
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ErrorMessage(request, HttpStatus.FORBIDDEN, exception.getMessage()));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
