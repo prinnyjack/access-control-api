@@ -31,8 +31,9 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.DELETE, "/users/*").hasAnyAuthority("ROLE_ADMIN", "ROLE_MODERATOR")
                         .requestMatchers(HttpMethod.PATCH, "/users/*").hasAnyAuthority("ROLE_ADMIN", "ROLE_MODERATOR", "ROLE_USER")
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers(WHITE_LIST_URL).permitAll()
+                        .anyRequest().authenticated())
+
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -46,5 +47,14 @@ public class SecurityConfiguration {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+
+    private static final String[] WHITE_LIST_URL = {
+            "/api/v1/auth/**", "/v2/api-docs", "/v3/api-docs",
+            "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**",
+            "/configuration/ui", "/configuration/security", "/swagger-ui/**",
+            "/webjars/**", "/swagger-ui.html", "/api/auth/**",
+            "/api/test/**", "/authenticate", "/docs-control", "/docs-control.html"
+    };
 
 }

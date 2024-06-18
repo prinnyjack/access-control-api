@@ -47,6 +47,12 @@ public class User implements UserDetails {
     @LastModifiedBy
     private String updatedBy;
 
+    public User (Long id, String username, String password) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+    }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

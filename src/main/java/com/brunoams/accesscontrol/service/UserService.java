@@ -8,9 +8,13 @@ import com.brunoams.accesscontrol.exception.InvalidAuthorityException;
 import com.brunoams.accesscontrol.exception.PasswordInvalidException;
 import com.brunoams.accesscontrol.exception.UsernameUniqueViolationException;
 import com.brunoams.accesscontrol.repository.UserRepository;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -23,6 +27,8 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Transactional(readOnly = true)
     public User findById (Long id) {
         return userRepository.findById(id).orElseThrow(
@@ -34,23 +40,21 @@ public class UserService {
         return userRepository.findAll();
     }
 
-
     @Transactional
     public User save (User user) {
-        try {
-            String encryptedPassword = new BCryptPasswordEncoder().encode(user.getPassword());
+        Optional<User> foundedUser = userRepository.findUserByUsername(user.getUsername());
+        if(foundedUser.isPresent()) {
+            throw new UsernameUniqueViolationException("This email is already been used.");
+        } else {
+            String encryptedPassword = passwordEncoder.encode(user.getPassword());
             user.setPassword(encryptedPassword);
             return userRepository.save(user);
-        } catch (DataIntegrityViolationException e) {
-            throw new UsernameUniqueViolationException("This email is already been used.");
         }
     }
 
     @Transactional
     public void updatePassword (Long id, String currentPassword, String newPassword, String repeatNewPassword) {
         User user = findById(id);
-
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new PasswordInvalidException("Current password incorrect!");
@@ -88,6 +92,6 @@ public class UserService {
         } else if (currentUserRole == Role.WORKER && !currentUser.getId().equals(parameterUser.getId())) {
             throw new InvalidAuthorityException("Workers have no authorization to create/update/delete any other user.");
         }
-
     }
+
 }
